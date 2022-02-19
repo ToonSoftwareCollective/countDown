@@ -50,12 +50,13 @@ Screen {
 // ---------------------------------------------------------------------
     
     onVisibleChanged: {
-        me = "Count Down Setup"
+        me = "Count "+ app.countDownUp + " Setup"
         if (visible) {
             keyBoardEnabled = false
             if ( ! editting) { 
 // I show up and do not come back from editting a field
 // so I come from the tile and need to set some variables
+                countDownUpToggle.isSwitchedOn = ( app.countDownUp == "Up" );
                 activeColor = "green"
                 yyyy = app.countDownDateTime.slice(0,4)
                 mm   = app.countDownDateTime.slice(5,7)
@@ -88,7 +89,7 @@ Screen {
                 btn16.buttonText = "Dierendag"
                 btn17.buttonText = "Singles"
 // button 18 is fixed test button
-                testButtonEnabled  = app.countDownTile.activeMe
+                testButtonEnabled  = ( app.countDownTile.activeMe && app.countDownUp == "Down" )
                 if (testButtonEnabled) { btn18.buttonText = "Test" } else { btn18.buttonText = "Test Disabled" } 
             } else {
                 editting = false
@@ -117,6 +118,10 @@ Screen {
 
     function refreshScreen() {
 
+        me = "Count "+ app.countDownUp + " Setup"
+
+        countDownUpToggle.isSwitchedOn = ( app.countDownUp == "Up" );
+        
 // Check if input constructs a valid date
         var testcountDownDateTime = ('0000' + yyyy).slice(-4) + '-' + 
                                 ('00' + mm).slice(-2) + '-' + 
@@ -150,7 +155,7 @@ Screen {
             if (diff > 0 ) {
                 app.countDownTile.activeMe = true
             }
-            testButtonEnabled  = app.countDownTile.activeMe
+            testButtonEnabled  = ( app.countDownTile.activeMe && app.countDownUp == "Down" )
             if (testButtonEnabled) { btn18.buttonText = "Test" } else { btn18.buttonText = "Test Disabled" } 
         }
     }
@@ -298,6 +303,7 @@ Screen {
         case "Valentijn" :
         case "Halloween" :
         case "Dierendag" :
+            if (app.countDownUp == "Up") { nowyyyy = nowyyyy - 1 } // shift one year back 
             if (what == "Singles" )     { var MM = '11' ; var DD = '11' }
             if (what == "Sinterklaas" ) { var MM = '12' ; var DD = '05' }
             if (what == "Kerstmis" )    { var MM = '12' ; var DD = '25' }
@@ -317,16 +323,16 @@ Screen {
         case "Middernacht" :
             var dateString = nowyyyy + '-' + nowmm + '-' + nowdd + ' 00:00:00'
             var newdate = new Date(dateString)
-            newdate.setDate(newdate.getDate()+1);
+            if (app.countDownUp == "Down") { newdate.setDate(newdate.getDate()+1); } // we want to count down 
             break;
 
 // Pasen gerelateerd
         case "Pasen" :
             var newdate = easterdate(nowyyyy)
-            var eastermm = newdate.getMonth() + 1
-            var easterdd = newdate.getDate()
-            if ( ( nowmm > eastermm ) || ( (eastermm == nowmm ) && (nowdd >= easterdd) ) ) { // we need easter next year 
-                newdate = easterdate(parseInt(nowyyyy) + 1) 
+            if ( (now - newdate) > 0) {
+                if ( app.countDownUp == "Down" ) { newdate = easterdate(parseInt(nowyyyy) + 1) }
+            } else {
+                if ( app.countDownUp == "Up" ) { newdate = easterdate(parseInt(nowyyyy) - 1) }
             }
             break;
         case "Carnaval" :
@@ -340,16 +346,17 @@ Screen {
 // Zo kom je op 49 dagen voor Pasen.
             var newdate = easterdate(nowyyyy)
             newdate.setDate(newdate.getDate() - 49);
-            var carnavalmm = newdate.getMonth() + 1
-            var carnavaldd = newdate.getDate()
-            if ( ( nowmm > carnavalmm ) || ( (carnavalmm == nowmm ) && (nowdd >= carnavaldd) ) ) { // we need carnaval next year 
-                newdate = easterdate(parseInt(nowyyyy) + 1) 
-                newdate.setDate(newdate.getDate() - 49);
+            if ( (now - newdate) > 0) {
+                if ( app.countDownUp == "Down" ) { newdate = easterdate(parseInt(nowyyyy) + 1) ; newdate.setDate(newdate.getDate() - 49); }
+           
+            } else {
+                if ( app.countDownUp == "Up" ) { newdate = easterdate(parseInt(nowyyyy) - 1) ; newdate.setDate(newdate.getDate() - 49); }
             }
             break;
 
 // Zomertijd Wintertijd
         case "Zomertijd" :
+            if (app.countDownUp == "Up") { nowyyyy = nowyyyy - 1 } // shift one year back 
             var dateString = nowyyyy + '-03-31 00:00:00'
             var newdate = new Date(dateString)
             while (newdate.getDay() != 0) { newdate.setDate(newdate.getDate() - 1) }
@@ -361,6 +368,7 @@ Screen {
             }
             break;
         case "Wintertijd" :
+            if (app.countDownUp == "Up") { nowyyyy = nowyyyy - 1 } // shift one year back 
             var dateString = nowyyyy + '-10-31 00:00:00'
             var newdate = new Date(dateString)
             while (newdate.getDay() != 0) { newdate.setDate(newdate.getDate() - 1) }
@@ -381,25 +389,40 @@ Screen {
                 newdate.setDate(newdate.getDate() + 1) 
                 if (newdate.getDay() == 0) { sundays +=1 }
             }
-            var newdatedd = newdate.getDay()
-            if ( (nowmm > 5 ) || ( (nowmm == 5) && (nowdd >= newdatedd ) ) ) {
-                dateString = (nowyyyy + 1) + '-04-30 00:00:00'
-                newdate = new Date(dateString)
-                sundays = 0
-                while (sundays < 2) {
-                    newdate.setDate(newdate.getDate() + 1) 
-                    if (newdate.getDay() == 0) { sundays +=1 }
+
+            if ( (now - newdate) > 0) {
+                if (app.countDownUp == "Down") { 
+                    dateString = (nowyyyy + 1 ) + '-04-30 00:00:00'
+                    newdate = new Date(dateString)
+                    sundays = 0
+                    while (sundays < 2) {
+                        newdate.setDate(newdate.getDate() + 1) 
+                        if (newdate.getDay() == 0) { sundays +=1 }
+                    }
+                }
+            } else {
+                if (app.countDownUp == "Up") { 
+                    dateString = (nowyyyy - 1 ) + '-04-30 00:00:00'
+                    newdate = new Date(dateString)
+                    sundays = 0
+                    while (sundays < 2) {
+                        newdate.setDate(newdate.getDate() + 1) 
+                        if (newdate.getDay() == 0) { sundays +=1 }
+                    }
                 }
             }
             break;
         case "Moederd.aug" :
-            if (( nowmm > 8 ) || ( ( nowmm == 8 ) && (nowdd > 15 ) ) ) {
-                var dateString = (parseInt(nowyyyy) + 1) + '-08-15 00:00:00'
-            } else {
-                var dateString = nowyyyy + '-08-15 00:00:00'
-            }
+            var dateString = nowyyyy + '-08-15 00:00:00'
             var newdate = new Date(dateString)
+
+            if ( (now - newdate) > 0) {
+                if (app.countDownUp == "Down") { dateString = (parseInt(nowyyyy) + 1) + '-08-15 00:00:00' ; newdate = new Date(dateString) }
+            } else {
+                if (app.countDownUp == "Up") { dateString = (parseInt(nowyyyy) - 1) + '-08-15 00:00:00' ; newdate = new Date(dateString) }
+            }
             break;
+
         case "Vaderd.jun2" :
         case "Vaderd.jun3" :
             if (what == "Vaderd.jun2" ) {var count = 2 } else { var count = 3} 
@@ -410,6 +433,30 @@ Screen {
                 newdate.setDate(newdate.getDate() + 1) 
                 if (newdate.getDay() == 0) { sundays +=1 }
             }
+
+            if ( (now - newdate) > 0) {
+                if (app.countDownUp == "Down") { 
+                    dateString = (nowyyyy + 1 ) + '-05-31 00:00:00'
+                    newdate = new Date(dateString)
+                    sundays = 0
+                    while (sundays < count) {
+                        newdate.setDate(newdate.getDate() + 1) 
+                        if (newdate.getDay() == 0) { sundays +=1 }
+                    }
+                }
+            } else {
+                if (app.countDownUp == "Up") { 
+                    dateString = (nowyyyy - 1 ) + '-05-31 00:00:00'
+                    newdate = new Date(dateString)
+                    sundays = 0
+                    while (sundays < count) {
+                        newdate.setDate(newdate.getDate() + 1) 
+                        if (newdate.getDay() == 0) { sundays +=1 }
+                    }
+                }
+            }
+
+/*
             var newdatedd = newdate.getDay()
             if ( (nowmm > 5 ) || ( (nowmm == 5) && (nowdd >= newdatedd ) ) ) {
                 dateString = (nowyyyy + 1) + '-05-31 00:00:00'
@@ -420,14 +467,19 @@ Screen {
                     if (newdate.getDay() == 0) { sundays +=1 }
                 }
             }
+*/
             break;
+
+
         case "Vaderd.mrt" :
-            if (( nowmm > 3 ) || ( ( nowmm == 3 ) && (nowdd > 19 ) ) ) {
-                var dateString = (parseInt(nowyyyy) + 1) + '-03-19 00:00:00'
-            } else {
-                var dateString = nowyyyy + '-03-19 00:00:00'
-            }
+            var dateString = nowyyyy + '-03-19 00:00:00'
             var newdate = new Date(dateString)
+
+            if ( (now - newdate) > 0) {
+                if (app.countDownUp == "Down") { dateString = (parseInt(nowyyyy) + 1) + '-03-19 00:00:00' ; newdate = new Date(dateString) }
+            } else {
+                if (app.countDownUp == "Up") { dateString = (parseInt(nowyyyy) - 1) + '-03-19 00:00:00' ; newdate = new Date(dateString) }
+            }
             break;
         }
 
@@ -460,7 +512,8 @@ Screen {
 
         Text {
             id                      : info1
-            text                    : "Kies of maak je moment\nWil je geen count down?\nKies moment in het verleden\nKlik Test om te testen\nHome voor Exit/Save"
+            text                    : (app.countDownUp == "Down") ? "Kies of maak je eind moment\nWil je geen count down?\nMaak moment in het verleden\nKlik Test om te testen\nHome voor Exit/Save"
+                                                                  : "Kies of maak je start moment\nWil je nog geen count up?\nMaak moment in de toekomst\nCount up start vanaf dan\nHome voor Exit/Save"
             color                   : "black"
             anchors {
                 top                 : parent.top
@@ -481,6 +534,33 @@ Screen {
                 }
             font.pixelSize          : isNxt ? 25 : 17
         }
+
+// ---- Count Down or Count Up ?
+
+        OnOffToggle {
+            id: countDownUpToggle
+            height: 36
+            backgroundColorKnob : "yellow"
+            shadowColorKnob: "black"
+            backgroundColorLeft: "red"
+            backgroundColorRight: "red"
+            anchors {
+                horizontalCenter: parent.horizontalCenter
+                top: parent.top
+                topMargin: isNxt ? 20 : 16
+            }
+            leftIsSwitchedOn: false
+            onSelectedChangedByUser: {
+                if (app.countDownUp == "Down") {
+                    app.countDownUp = "Up"
+                } else {
+                    app.countDownUp = "Down"
+                }
+                refreshScreen()
+            }
+        }
+
+// Moment name
 
         YaLabel {
             id                      : momentNameInput
@@ -1175,11 +1255,11 @@ Screen {
                 if (test) {
                     test = false 
                 } else {
-                    app.momentName = "Count Down"
+                    app.momentName = "Count"
                     app.momentReached = false
                     app.saveSettings()
                 }
-                me = "Count Down Setup"
+                me = "Count " + app.countDownUp + " Setup"
                 activeColor = "green"
             }
         }
@@ -1211,11 +1291,11 @@ Screen {
             if (test) {
                 test = false 
             } else {
-                app.momentName = "Count Down"
+                app.momentName = "Count"
                 app.momentReached = false
                 app.saveSettings()
             }
-            me = "Count Down Setup"
+            me = "Count " + app.countDownUp + " Setup"
             activeColor = "green"
         }
         visible                 : ( (! keyBoardEnabled) && ( app.momentReached || test ) )

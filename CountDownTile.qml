@@ -31,16 +31,21 @@ Tile {
                 stage.openFullscreen(app.countDownScreenUrl);
             } else { 
                 var now = Date.now()
-                diff = Math.floor( ( app.countDownDateTimeInt - now ) / 1000 )
-                if ( diff > 0 ) {
-                    myInterval = 100
-                    activeMe = true
-                } else {
-                    activeMe = false
-                    if (app.momentName != "Count Down" ) {
-                        app.momentName = "Count Down"
-                        app.saveSettings()
+                if (app.countDownUp == "Down") {
+                    diff = Math.floor( ( app.countDownDateTimeInt - now ) / 1000 )
+                    if ( diff > 0 ) {
+                        myInterval = 100
+                        activeMe = true
+                    } else {
+                        activeMe = false
+                        if (app.momentName != "Count" ) {
+                            app.momentName = "Count"
+                            app.saveSettings()
+                        }
                     }
+                } else {
+                    activeMe = true
+                    myInterval = 1000
                 }
             }
         }
@@ -62,31 +67,63 @@ Tile {
     function doit() {
         
         var now = Date.now()
-        diff = Math.floor( ( app.countDownDateTimeInt - now ) / 1000 )
-        if ( diff <= 0 ) {
-            app.momentReached = true
-            activeMe = false
-            app.saveSettings()
-            stage.openFullscreen(app.countDownScreenUrl);
-        } else {
-// interval is 1 second to : either sync on 10 seconds or count last seconds
-            if ( ( (diff % 10) != 0 ) || (diff <= 120)  ){
-                myInterval = 500
+        if (app.countDownUp == "Down") {
+            diff = Math.floor( ( app.countDownDateTimeInt - now ) / 1000 )
+            if ( diff <= 0 ) {
+                app.momentReached = true
+                activeMe = false
+                app.saveSettings()
+                stage.openFullscreen(app.countDownScreenUrl);
             } else {
-                myInterval = 10000
+// interval is 1 second to : either sync on 10 seconds or count last seconds
+                if ( ( (diff % 10) != 0 ) || (diff <= 120)  ){
+                    myInterval = 500
+                } else {
+                    myInterval = 10000
+                }
+                days     =  ( diff ) / 60 / 60 / 24
+                hours    =  ( diff ) / 60 / 60         - days * 24
+                minutes  =  ( diff ) / 60              - days * 24 * 60        - hours * 60
+                seconds  =  ( diff )                   - days * 24 * 60 * 60   - hours * 60 * 60   - minutes * 60
+                if (days == 1)      { showWhat1="dag" }     else { showWhat1 ="dagen" }
+                showValue1=days
+                 if (hours == 1)    { showWhat2="uur" }    else { showWhat2 ="uren" }               
+                showValue2=hours
+                if (minutes == 1)   { showWhat3="minuut" }  else { showWhat3 ="minuten" }              
+                showValue3=minutes
+                if (seconds == 1)   { showWhat4="seconde" }  else { showWhat4 ="seconden" }        
+                showValue4=seconds
             }
-            days     =  ( diff ) / 60 / 60 / 24
-            hours    =  ( diff ) / 60 / 60         - days * 24
-            minutes  =  ( diff ) / 60              - days * 24 * 60        - hours * 60
-            seconds  =  ( diff )                   - days * 24 * 60 * 60   - hours * 60 * 60   - minutes * 60
-            if (days == 1)      { showWhat1="dag" }     else { showWhat1 ="dagen" }
-            showValue1=days
-             if (hours == 1)    { showWhat2="uur" }    else { showWhat2 ="uren" }               
-            showValue2=hours
-            if (minutes == 1)   { showWhat3="minuut" }  else { showWhat3 ="minuten" }              
-            showValue3=minutes
-            if (seconds == 1)   { showWhat4="seconde" }  else { showWhat4 ="seconden" }        
-            showValue4=seconds
+        } else {
+            diff = Math.floor( ( now - app.countDownDateTimeInt ) / 1000 )
+            
+            if (diff > 0 ) {
+            
+                if ( ( diff % 10) != 0  ){
+                    myInterval = 500
+                } else {
+                    myInterval = 10000
+                }
+
+                days     =  ( diff ) / 60 / 60 / 24
+                hours    =  ( diff ) / 60 / 60         - days * 24
+                minutes  =  ( diff ) / 60              - days * 24 * 60        - hours * 60
+                seconds  =  ( diff )                   - days * 24 * 60 * 60   - hours * 60 * 60   - minutes * 60
+                if (days == 1)      { showWhat1="dag" }     else { showWhat1 ="dagen" }
+                showValue1=days
+                 if (hours == 1)    { showWhat2="uur" }     else { showWhat2 ="uren" }               
+                showValue2=hours
+                if (minutes == 1)   { showWhat3="minuut" }  else { showWhat3 ="minuten" }              
+                showValue3=minutes
+                if (seconds == 1)   { showWhat4="seconde" }  else { showWhat4 ="seconden" }        
+                showValue4=seconds
+            } else {
+                if  ( diff > - 20) {
+                    myInterval = 500
+                } else {
+                    myInterval = 10000
+                }
+            }
         }
     }
 
@@ -99,7 +136,7 @@ Tile {
         width                   : parent.height
         buttonActiveColor       : buttonSelectedColor
         buttonHoverColor        : buttonSelectedColor
-        buttonSelectedColor     : (diff <= 120) ? "white" : (dimState) ? "black" : "white"
+        buttonSelectedColor     : (dimState) ? "black"  : "white"
         buttonBorderColor       : (dimState) ? "lightgrey" : "black"
         buttonBorderWidth       : 1
         selected                : true
@@ -118,7 +155,7 @@ Tile {
     Text {
         id                  : title
         text                : app.momentName
-        color               : (activeMe && diff <= 120) ? "red" : (dimState) ? "lightgrey" : "black"
+        color               : (activeMe && diff <= 120 && app.countDownUp == "Down" ) ? "red" : (dimState) ? "lightgrey" : "black"
         anchors {
             top             : parent.top
             horizontalCenter: parent.horizontalCenter
@@ -152,7 +189,7 @@ Tile {
             topMargin       : isNxt ? 5 : 3
         }
         font.pixelSize      : isNxt ? 25 : 20
-        visible             : ( activeMe && diff > 120 )
+        visible             : ( activeMe && diff > 120 )  || ( activeMe && diff > 0 && app.countDownUp == "Up" )
     }
 
     Text {
@@ -165,7 +202,7 @@ Tile {
             topMargin       : isNxt ? 5 : 3
         }
         font.pixelSize      : isNxt ? 25 : 20
-        visible             : ( activeMe && diff > 120 )
+        visible             : ( activeMe && diff > 120 )  || ( activeMe && diff > 0 && app.countDownUp == "Up" )
     }
 
     Text {
@@ -178,7 +215,7 @@ Tile {
             topMargin       : isNxt ? 5 : 3
         }
         font.pixelSize      : isNxt ? 25 : 20
-        visible             : ( activeMe && diff > 120 )
+        visible             : ( activeMe && diff > 120 )  || ( activeMe && diff > 0 && app.countDownUp == "Up" )
     }
 
     Text {
@@ -191,7 +228,7 @@ Tile {
             topMargin       : isNxt ? 5 : 3
         }
         font.pixelSize      : isNxt ? 25 : 20
-        visible             : ( activeMe && diff > 120 )
+        visible             : ( activeMe && diff > 120 )  || ( activeMe && diff > 0 && app.countDownUp == "Up" )
     }
 
 
@@ -206,7 +243,7 @@ Tile {
         }
         font.pixelSize      : isNxt ? 100 : 60
         font.bold           : true
-        visible             : ( activeMe && diff <= 120 )
+        visible             : ( activeMe && diff <= 120 && app.countDownUp == "Down" )
     }
 
 }
