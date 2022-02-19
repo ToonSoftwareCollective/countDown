@@ -3,6 +3,12 @@ import qb.components 1.0
 import qb.base 1.0;
 import FileIO 1.0
 
+// The first version of this app was for count down only
+// A request came in to also add count up for example for people who stop smoking
+// This is why some things may seem a little odd. 
+// Starting with the app name.
+
+
 App {
     id : app
     
@@ -11,10 +17,12 @@ App {
 	
     property url                countDownScreenUrl  : "CountDownScreen.qml"
     property CountDownScreen    countDownScreen
-    
+
+// Next string is "Down" for down and "Up" for up.   
+    property string             countDownUp
     property string             countDownDateTime
     property variant            countDownDateTimeInt
-
+    
     property bool               momentReached
 
     property string             momentName
@@ -63,6 +71,14 @@ App {
             momentName         = userSettingsJSON['momentName'];
             countDownDateTime  = userSettingsJSON['countDownDateTime'];
             momentReached      = userSettingsJSON['momentReached'];
+// add extra field for countDownUp
+            try {
+                countDownUp     = userSettingsJSON['countDownUp'];
+            } catch(e) {
+                countDownUp     = "Down";
+                saveSettings()
+            }
+
         } catch(e) {
             log('Startup : '+e)
             var now = new Date()
@@ -73,7 +89,8 @@ App {
                     ('00'+ now.getMinutes()      ).slice(-2) + ":" +
                     ('00'+ now.getSeconds()      ).slice(-2)
             momentReached = false
-            momentName ="Count Down"
+            momentName    = "Count"
+            countDownUp   = "Down";
             saveSettings()
         }
         countDownDateTimeInt = Date.parse(countDownDateTime+".000")
@@ -101,6 +118,7 @@ App {
         var tmpUserSettingsJSON = {
             "momentName"        : momentName,
             "countDownDateTime" : countDownDateTime,
+            "countDownUp"       : countDownUp,
             "momentReached"     : momentReached
         }
 

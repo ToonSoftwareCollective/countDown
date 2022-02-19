@@ -1,1 +1,1 @@
-This Toon app gives you a Count Down function on your Toon.
+This Toon app gives you a Count Down and Count Up function on your Toon.
