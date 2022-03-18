@@ -360,7 +360,7 @@ Screen {
             var dateString = nowyyyy + '-03-31 00:00:00'
             var newdate = new Date(dateString)
             while (newdate.getDay() != 0) { newdate.setDate(newdate.getDate() - 1) }
-            var newdatedd = newdate.getDay()
+            var newdatedd = newdate.getDate()
             if ( (nowmm > 3 ) || ( (nowmm == 3) && (nowdd >= newdatedd ) ) ) {
                 dateString = (nowyyyy + 1) + '-03-31 00:00:00'
                 newdate = new Date(dateString)
@@ -372,7 +372,7 @@ Screen {
             var dateString = nowyyyy + '-10-31 00:00:00'
             var newdate = new Date(dateString)
             while (newdate.getDay() != 0) { newdate.setDate(newdate.getDate() - 1) }
-            var newdatedd = newdate.getDay()
+            var newdatedd = newdate.getDate()
             if ( (nowmm > 10 ) || ( (nowmm == 10) && (nowdd >= newdatedd ) ) ) {
                 dateString = (nowyyyy + 1) + '-10-31 00:00:00'
                 newdate = new Date(dateString)
@@ -456,18 +456,6 @@ Screen {
                 }
             }
 
-/*
-            var newdatedd = newdate.getDay()
-            if ( (nowmm > 5 ) || ( (nowmm == 5) && (nowdd >= newdatedd ) ) ) {
-                dateString = (nowyyyy + 1) + '-05-31 00:00:00'
-                newdate = new Date(dateString)
-                sundays = 0
-                while (sundays < count) {
-                    newdate.setDate(newdate.getDate() + 1) 
-                    if (newdate.getDay() == 0) { sundays +=1 }
-                }
-            }
-*/
             break;
 
 
